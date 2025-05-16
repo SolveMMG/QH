@@ -10,7 +10,9 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       '/api': {
-        
+        target: 'https://quickhire-remote-connect-production.up.railway.app',
+        changeOrigin: true,
+        // Remove the rewrite function to preserve the /api prefix
       },
     },
   },
