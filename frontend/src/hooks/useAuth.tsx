@@ -2,8 +2,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
-import api from '@/services/api';
+import axios from 'axios';
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL, // Environment-specific
+  withCredentials: true, // if your backend sets cookies
+});
+console.log(api)
 export interface User {
   id: string;
   name: string;
