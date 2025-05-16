@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { AVAILABLE_SKILLS, Skill } from '@/hooks/useJobs';
+import { useJobs } from '@/hooks/useJobs';
+import { Skill } from '@/types/jobs';
 import { CheckIcon, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import {
   Command,
@@ -31,6 +28,8 @@ const JobFilters: React.FC<JobFiltersProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
 
+  const { availableSkills } = useJobs();
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -38,7 +37,7 @@ const JobFilters: React.FC<JobFiltersProps> = ({
   };
 
   const handleSkillSelect = (skill: Skill) => {
-    if (!selectedSkills.some((s) => s.id === skill.id)) {
+    if (!selectedSkills.some((s) => String(s.id) === String(skill.id))) {
       const newSkills = [...selectedSkills, skill];
       onSkillsChange(newSkills);
     }
@@ -46,7 +45,7 @@ const JobFilters: React.FC<JobFiltersProps> = ({
   };
 
   const handleSkillRemove = (skillId: string) => {
-    onSkillsChange(selectedSkills.filter((s) => s.id !== skillId));
+    onSkillsChange(selectedSkills.filter((s) => String(s.id) !== String(skillId)));
   };
 
   const handleClearFilters = () => {
@@ -83,8 +82,8 @@ const JobFilters: React.FC<JobFiltersProps> = ({
               <CommandInput placeholder="Search skills..." />
               <CommandEmpty>No skills found.</CommandEmpty>
               <CommandGroup heading="Available Skills" className="max-h-64 overflow-y-auto">
-                {AVAILABLE_SKILLS.map((skill) => {
-                  const isSelected = selectedSkills.some((s) => s.id === skill.id);
+                {(availableSkills || []).map((skill) => {
+                  const isSelected = selectedSkills.some((s) => String(s.id) === String(skill.id));
                   return (
                     <CommandItem
                       key={skill.id}

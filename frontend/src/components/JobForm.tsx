@@ -1,40 +1,36 @@
 import React, { useState } from 'react';
-import { Job, AVAILABLE_SKILLS, Skill } from '@/hooks/useJobs';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { useJobs } from '@/hooks/useJobs';
+import { Skill } from '@/types/jobs';
 import { CheckIcon, X } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem
+  CommandItem,
 } from '@/components/ui/command';
-import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 
 interface JobFormProps {
-  initialData?: Partial<Job>;
-  onSubmit: (data: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName'>) => Promise<void>;
-  isLoading: boolean;
+  initialData?: any;
+  onSubmit: (data: any) => Promise<void>;
 }
 
-const JobForm: React.FC<JobFormProps> = ({
-  initialData = {},
-  onSubmit,
-  isLoading
-}) => {
+const JobForm: React.FC<JobFormProps> = ({ initialData = {}, onSubmit }) => {
+  const { availableSkills } = useJobs();
+
   const [title, setTitle] = useState(initialData.title || '');
   const [description, setDescription] = useState(initialData.description || '');
-  const [budget, setBudget] = useState(initialData.budget?.toString() || '');
+  const [budget, setBudget] = useState(initialData.budget || '');
   const [skills, setSkills] = useState<Skill[]>(initialData.skills || []);
-  const [status, setStatus] = useState<'open' | 'closed' | 'archived'>(initialData.status || 'open');
+  const [status, setStatus] = useState<'open' | 'closed' | 'archived'>(
+    initialData.status || 'open'
+  );
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
 
@@ -70,7 +66,7 @@ const JobForm: React.FC<JobFormProps> = ({
   };
 
   const handleSkillSelect = (skill: Skill) => {
-    if (!skills.some(s => s.id === skill.id)) {
+    if (!skills.some((s) => String(s.id) === String(skill.id))) {
       setSkills([...skills, skill]);
       if (validationErrors.skills) {
         setValidationErrors({ ...validationErrors, skills: '' });
@@ -80,7 +76,7 @@ const JobForm: React.FC<JobFormProps> = ({
   };
 
   const handleSkillRemove = (skillId: string) => {
-    setSkills(skills.filter(s => s.id !== skillId));
+    setSkills(skills.filter((s) => String(s.id) !== String(skillId)));
   };
 
   return (
@@ -149,8 +145,8 @@ const JobForm: React.FC<JobFormProps> = ({
                 <CommandInput placeholder="Search skills..." />
                 <CommandEmpty>No skills found.</CommandEmpty>
                 <CommandGroup heading="Available Skills" className="max-h-64 overflow-y-auto">
-                  {AVAILABLE_SKILLS.map((skill) => {
-                    const isSelected = skills.some(s => s.id === skill.id);
+                  {(availableSkills || []).map((skill) => {
+                    const isSelected = skills.some((s) => String(s.id) === String(skill.id));
                     return (
                       <CommandItem
                         key={skill.id}
@@ -159,9 +155,7 @@ const JobForm: React.FC<JobFormProps> = ({
                         className="flex items-center justify-between"
                       >
                         {skill.name}
-                        {isSelected && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
+                        {isSelected && <CheckIcon className="h-4 w-4" />}
                       </CommandItem>
                     );
                   })}
@@ -211,15 +205,9 @@ const JobForm: React.FC<JobFormProps> = ({
         </div>
       )}
 
-      <div className="pt-2">
-        <Button
-          type="submit"
-          className="w-full bg-brand-blue hover:bg-brand-darkBlue"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Submitting...' : initialData.id ? 'Update Job' : 'Post Job'}
-        </Button>
-      </div>
+      <Button type="submit" className="w-full">
+        {initialData.id ? 'Update Job' : 'Create Job'}
+      </Button>
     </form>
   );
 };
