@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Job, AVAILABLE_SKILLS, Skill } from '@/hooks/useJobs';
 import { Input } from '@/components/ui/input';
@@ -6,30 +5,28 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { CheckIcon, X } from 'lucide-react';
-import { 
+import {
   Popover,
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover';
-import { 
-  Command, 
-  CommandEmpty, 
-  CommandGroup, 
-  CommandInput, 
-  CommandItem 
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem
 } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
-
 
 interface JobFormProps {
   initialData?: Partial<Job>;
   onSubmit: (data: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName'>) => Promise<void>;
   isLoading: boolean;
 }
-console.log(AVAILABLE_SKILLS)
 
-const JobForm: React.FC<JobFormProps> = ({ 
-  initialData = {}, 
+const JobForm: React.FC<JobFormProps> = ({
+  initialData = {},
   onSubmit,
   isLoading
 }) => {
@@ -43,7 +40,7 @@ const JobForm: React.FC<JobFormProps> = ({
 
   const validate = (): boolean => {
     const errors: { [key: string]: string } = {};
-    
+
     if (!title.trim()) errors.title = 'Title is required';
     if (!description.trim()) errors.description = 'Description is required';
     if (!budget) errors.budget = 'Budget is required';
@@ -51,16 +48,16 @@ const JobForm: React.FC<JobFormProps> = ({
       errors.budget = 'Budget must be a positive number';
     }
     if (skills.length === 0) errors.skills = 'At least one skill is required';
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
-    
+
     const jobData = {
       title,
       description,
@@ -68,21 +65,20 @@ const JobForm: React.FC<JobFormProps> = ({
       skills,
       status,
     };
-    
+
     await onSubmit(jobData);
   };
-  
+
   const handleSkillSelect = (skill: Skill) => {
     if (!skills.some(s => s.id === skill.id)) {
       setSkills([...skills, skill]);
-      // Clear validation error if present
       if (validationErrors.skills) {
         setValidationErrors({ ...validationErrors, skills: '' });
       }
     }
     setIsSkillsOpen(false);
   };
-  console.log(AVAILABLE_SKILLS)
+
   const handleSkillRemove = (skillId: string) => {
     setSkills(skills.filter(s => s.id !== skillId));
   };
@@ -102,7 +98,7 @@ const JobForm: React.FC<JobFormProps> = ({
           <p className="text-red-500 text-sm">{validationErrors.title}</p>
         )}
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="description">Job Description</Label>
         <Textarea
@@ -116,7 +112,7 @@ const JobForm: React.FC<JobFormProps> = ({
           <p className="text-red-500 text-sm">{validationErrors.description}</p>
         )}
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="budget">Budget ($)</Label>
         <Input
@@ -132,24 +128,23 @@ const JobForm: React.FC<JobFormProps> = ({
           <p className="text-red-500 text-sm">{validationErrors.budget}</p>
         )}
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="skills">Required Skills</Label>
         <div>
           <Popover open={isSkillsOpen} onOpenChange={setIsSkillsOpen}>
             <PopoverTrigger asChild>
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 className={`w-full justify-start border-dashed ${validationErrors.skills ? 'border-red-500' : ''}`}
               >
-                {skills.length > 0 
+                {skills.length > 0
                   ? `${skills.length} skill${skills.length > 1 ? 's' : ''} selected`
-                  : 'Select required skills'
-                }
+                  : 'Select required skills'}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0 z-50" align="start">
+            <PopoverContent className="w-full p-0" align="start">
               <Command>
                 <CommandInput placeholder="Search skills..." />
                 <CommandEmpty>No skills found.</CommandEmpty>
@@ -157,17 +152,17 @@ const JobForm: React.FC<JobFormProps> = ({
                   {AVAILABLE_SKILLS.map((skill) => {
                     const isSelected = skills.some(s => s.id === skill.id);
                     return (
-                     <CommandItem
-                                        key={skill.id}
-                                        value={skill.name.toLowerCase()} // Convert to lowercase
-                                        onSelect={() => handleSkillSelect(skill)}
-                                        className="flex items-center justify-between"
-                                      >
-                                        {skill.name}
-                                        {isSelected && (
-                                          <CheckIcon className="h-4 w-4" />
-                                        )}
-                                      </CommandItem>
+                      <CommandItem
+                        key={skill.id}
+                        value={skill.name}
+                        onSelect={() => handleSkillSelect(skill)}
+                        className="flex items-center justify-between"
+                      >
+                        {skill.name}
+                        {isSelected && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </CommandItem>
                     );
                   })}
                 </CommandGroup>
@@ -178,18 +173,18 @@ const JobForm: React.FC<JobFormProps> = ({
             <p className="text-red-500 text-sm mt-1">{validationErrors.skills}</p>
           )}
         </div>
-        
+
         {skills.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
             {skills.map((skill) => (
-              <Badge 
-                key={skill.id} 
+              <Badge
+                key={skill.id}
                 className="bg-blue-50 text-blue-800 hover:bg-blue-100"
               >
                 {skill.name}
-                <button 
+                <button
                   type="button"
-                  className="ml-1 hover:text-blue-900" 
+                  className="ml-1 hover:text-blue-900"
                   onClick={() => handleSkillRemove(skill.id)}
                 >
                   <X size={14} />
@@ -199,7 +194,7 @@ const JobForm: React.FC<JobFormProps> = ({
           </div>
         )}
       </div>
-      
+
       {initialData.id && (
         <div className="space-y-2">
           <Label htmlFor="status">Job Status</Label>
@@ -215,10 +210,10 @@ const JobForm: React.FC<JobFormProps> = ({
           </select>
         </div>
       )}
-      
+
       <div className="pt-2">
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="w-full bg-brand-blue hover:bg-brand-darkBlue"
           disabled={isLoading}
         >
