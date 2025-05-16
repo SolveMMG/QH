@@ -25,13 +25,9 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 // app.use(cors());
 app.use(cors({
-  origin: ['https://qh-ashen.vercel.app/'], // add more origins as needed
-  credentials: true, // if you're using cookies/auth headers
+  origin: ['https://qh-production.up.railway.app'],
+  credentials: true, // if you're using cookies/auth
 }));
-// app.use(cors({
-//   origin: ['https://your-vercel-app-url.vercel.app'],
-//   credentials: true, // if you're using cookies/auth
-// }));
 app.use(express.json());
 
 // Make Prisma client available to routes
