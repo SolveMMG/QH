@@ -21,7 +21,7 @@ const authenticateToken = (req, res, next) => {
 
 // Middleware to check if user is an employer
 const isEmployer = (req, res, next) => {
-  if (req.user && req.user.role === 'EMPLOYER') {
+  if (req.user && req.user.role?.toUpperCase() === 'EMPLOYER') {
     next();
   } else {
     res.status(403).json({ message: 'Access denied. Employer role required.' });

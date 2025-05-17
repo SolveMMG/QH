@@ -8,9 +8,10 @@ const { z } = require('zod');
 const jobSchema = z.object({
   title: z.string().min(5).max(100),
   description: z.string().min(20),
-  budget: z.number().positive(),
-  skills: z.array(z.string()).min(1)
+  budget: z.coerce.number().positive(),
+  skills: z.array(z.string()).min(1),
 });
+
 
 const jobUpdateSchema = jobSchema.partial().extend({
   status: z.enum(['OPEN', 'CLOSED', 'ARCHIVED']).optional()

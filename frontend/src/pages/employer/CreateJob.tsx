@@ -29,6 +29,7 @@ const CreateJob = () => {
 
   const handleSubmit = async (jobData) => {
     try {
+      console.log("Payload being sent:", jobData); // where jobData is the object you're sending
       const job = await createJob(jobData);
       toast.success('Job created successfully!');
       navigate(`/jobs/${job.id}`);

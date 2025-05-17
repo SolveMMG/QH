@@ -58,11 +58,12 @@ router.post('/register', async (req, res) => {
     });
 
     // Generate JWT token
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+   const token = jwt.sign(
+  { id: user.id, email: user.email, role: user.role.toUpperCase() },
+  process.env.JWT_SECRET,
+  { expiresIn: '7d' }
+);
+
 
     // Return user data without password
     const { password: _, ...userWithoutPassword } = user;

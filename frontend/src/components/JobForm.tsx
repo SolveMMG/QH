@@ -1,212 +1,130 @@
-import React, { useState } from 'react';
-import { useJobs } from '@/hooks/useJobs';
-import { Skill } from '@/types/jobs';
-import { CheckIcon, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command';
-import { Label } from '@/components/ui/label';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 
-interface JobFormProps {
-  initialData?: any;
-  onSubmit: (data: any) => Promise<void>;
+interface Skill {
+  id: string;
+  name: string;
 }
 
-const JobForm: React.FC<JobFormProps> = ({ initialData = {}, onSubmit }) => {
-  const { availableSkills } = useJobs();
-
-  const [title, setTitle] = useState(initialData.title || '');
-  const [description, setDescription] = useState(initialData.description || '');
-  const [budget, setBudget] = useState(initialData.budget || '');
-  const [skills, setSkills] = useState<Skill[]>(initialData.skills || []);
-  const [status, setStatus] = useState<'open' | 'closed' | 'archived'>(
-    initialData.status || 'open'
-  );
-  const [isSkillsOpen, setIsSkillsOpen] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
-
-  const validate = (): boolean => {
-    const errors: { [key: string]: string } = {};
-
-    if (!title.trim()) errors.title = 'Title is required';
-    if (!description.trim()) errors.description = 'Description is required';
-    if (!budget) errors.budget = 'Budget is required';
-    else if (isNaN(Number(budget)) || Number(budget) <= 0) {
-      errors.budget = 'Budget must be a positive number';
-    }
-    if (skills.length === 0) errors.skills = 'At least one skill is required';
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+interface JobFormProps {
+  onSubmit: (data: any) => void;
+  isLoading?: boolean;
+  initialData?: {
+    title?: string;
+    description?: string;
+    budget?: number;
+    skills?: string[]; // assume array of skill IDs or names depending on your backend
   };
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialData }) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [budget, setBudget] = useState<number>(0);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
+  const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
 
-    if (!validate()) return;
-
-    const jobData = {
-      title,
-      description,
-      budget: Number(budget),
-      skills,
-      status,
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await axios.get('/api/skills');
+        setSkillsFromDB(response.data); // expected to be Skill[]
+      } catch (error) {
+        console.error('Failed to fetch skills:', error);
+      }
     };
 
-    await onSubmit(jobData);
-  };
+    fetchSkills();
+  }, []);
 
-  const handleSkillSelect = (skill: Skill) => {
-    if (!skills.some((s) => String(s.id) === String(skill.id))) {
-      setSkills([...skills, skill]);
-      if (validationErrors.skills) {
-        setValidationErrors({ ...validationErrors, skills: '' });
-      }
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || '');
+      setDescription(initialData.description || '');
+      setBudget(Number(initialData.budget) || 0);
+      setSelectedSkillIds(initialData.skills || []);
     }
-    setIsSkillsOpen(false);
+  }, [initialData]);
+
+  const toggleSkill = (id: string) => {
+    setSelectedSkillIds(prev =>
+      prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+    );
   };
 
-  const handleSkillRemove = (skillId: string) => {
-    setSkills(skills.filter((s) => String(s.id) !== String(skillId)));
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      title,
+      description,
+      budget,
+      skills: selectedSkillIds, // send skill IDs
+    });
   };
+  
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
+      <div>
         <Label htmlFor="title">Job Title</Label>
         <Input
           id="title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g., React Developer Needed for E-commerce Project"
-          className={validationErrors.title ? 'border-red-500' : ''}
+          onChange={e => setTitle(e.target.value)}
+          placeholder="e.g. Full Stack Developer"
+          required
         />
-        {validationErrors.title && (
-          <p className="text-red-500 text-sm">{validationErrors.title}</p>
-        )}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Job Description</Label>
+      <div>
+        <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe the project, requirements, and expectations..."
-          className={`min-h-[120px] ${validationErrors.description ? 'border-red-500' : ''}`}
+          onChange={e => setDescription(e.target.value)}
+          placeholder="Briefly describe the job requirements..."
+          required
         />
-        {validationErrors.description && (
-          <p className="text-red-500 text-sm">{validationErrors.description}</p>
-        )}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="budget">Budget ($)</Label>
+      <div>
+        <Label htmlFor="budget">Budget (USD)</Label>
         <Input
           id="budget"
           type="number"
           value={budget}
-          onChange={(e) => setBudget(e.target.value)}
-          placeholder="e.g., 2500"
+           onChange={e => setBudget(Number(e.target.value))}
           min="0"
-          className={validationErrors.budget ? 'border-red-500' : ''}
+          required
         />
-        {validationErrors.budget && (
-          <p className="text-red-500 text-sm">{validationErrors.budget}</p>
-        )}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="skills">Required Skills</Label>
-        <div>
-          <Popover open={isSkillsOpen} onOpenChange={setIsSkillsOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className={`w-full justify-start border-dashed ${validationErrors.skills ? 'border-red-500' : ''}`}
-              >
-                {skills.length > 0
-                  ? `${skills.length} skill${skills.length > 1 ? 's' : ''} selected`
-                  : 'Select required skills'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search skills..." />
-                <CommandEmpty>No skills found.</CommandEmpty>
-                <CommandGroup heading="Available Skills" className="max-h-64 overflow-y-auto">
-                  {(availableSkills || []).map((skill) => {
-                    const isSelected = skills.some((s) => String(s.id) === String(skill.id));
-                    return (
-                      <CommandItem
-                        key={skill.id}
-                        value={skill.name}
-                        onSelect={() => handleSkillSelect(skill)}
-                        className="flex items-center justify-between"
-                      >
-                        {skill.name}
-                        {isSelected && <CheckIcon className="h-4 w-4" />}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          {validationErrors.skills && (
-            <p className="text-red-500 text-sm mt-1">{validationErrors.skills}</p>
-          )}
+      <div>
+        <Label>Required Skills</Label>
+        <div className="flex flex-wrap gap-2 mt-2">
+          {skillsFromDB.map(skill => (
+            <button
+              key={skill.id}
+              type="button"
+              className={`px-3 py-1 rounded-full border text-sm transition ${
+                selectedSkillIds.includes(skill.id)
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300'
+              }`}
+              onClick={() => toggleSkill(skill.id)}
+            >
+              {skill.name}
+            </button>
+          ))}
         </div>
-
-        {skills.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {skills.map((skill) => (
-              <Badge
-                key={skill.id}
-                className="bg-blue-50 text-blue-800 hover:bg-blue-100"
-              >
-                {skill.name}
-                <button
-                  type="button"
-                  className="ml-1 hover:text-blue-900"
-                  onClick={() => handleSkillRemove(skill.id)}
-                >
-                  <X size={14} />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        )}
       </div>
 
-      {initialData.id && (
-        <div className="space-y-2">
-          <Label htmlFor="status">Job Status</Label>
-          <select
-            id="status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as 'open' | 'closed' | 'archived')}
-            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-          >
-            <option value="open">Open</option>
-            <option value="closed">Closed</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
-      )}
-
-      <Button type="submit" className="w-full">
-        {initialData.id ? 'Update Job' : 'Create Job'}
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? 'Submitting...' : 'Submit Job'}
       </Button>
     </form>
   );
