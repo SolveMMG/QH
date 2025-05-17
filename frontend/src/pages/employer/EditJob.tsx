@@ -89,17 +89,20 @@ const EditJob = () => {
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <JobForm
-            initialData={{
-              title: job.title,
-              description: job.description,
-              budget: job.budget,
-              skills: job.skills.map((skill) =>
-                typeof skill === 'string' ? skill : (skill as any).id
-              ),
-            }}
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-          />
+              initialData={{
+                title: job.title,
+                description: job.description,
+                budget: job.budget,
+                skills: Array.isArray(job.skills)
+                  ? job.skills.map((skill) =>
+                      typeof skill === 'string' ? skill : (skill as any).id
+                    )
+                  : [], // fallback to empty array
+              }}
+              onSubmit={handleSubmit}
+              isLoading={isLoading}
+            />
+
 
           </div>
         </div>
