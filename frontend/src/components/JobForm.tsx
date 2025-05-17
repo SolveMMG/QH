@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
+
 interface Skill {
   id: string;
   name: string;
@@ -16,7 +17,7 @@ interface JobFormProps {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: string[]; // assume array of skill IDs or names depending on your backend
+    skills?: string[];
   };
 }
 
@@ -26,12 +27,13 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [budget, setBudget] = useState<number>(0);
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
+  const [didInit, setDidInit] = useState(false);
 
   useEffect(() => {
     const fetchSkills = async () => {
       try {
         const response = await axios.get('/api/skills');
-        setSkillsFromDB(response.data); // expected to be Skill[]
+        setSkillsFromDB(response.data);
       } catch (error) {
         console.error('Failed to fetch skills:', error);
       }
@@ -41,23 +43,14 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   }, []);
 
   useEffect(() => {
-  if (initialData) {
-    setTitle(initialData.title || '');
-    setDescription(initialData.description || '');
-    setBudget(Number(initialData.budget) || 0);
-
-    if (Array.isArray(initialData.skills)) {
-      setSelectedSkillIds(initialData.skills);
-    } else {
-      console.warn("initialData.skills is not an array", initialData.skills);
-      setSelectedSkillIds([]);
+    if (!didInit && initialData) {
+      setTitle(initialData.title || '');
+      setDescription(initialData.description || '');
+      setBudget(Number(initialData.budget) || 0);
+      setSelectedSkillIds(Array.isArray(initialData.skills) ? initialData.skills : []);
+      setDidInit(true);
     }
-  }
-}, [initialData]);
-console.log("initialData.skills in JobForm:", initialData?.skills);
-console.log("Type of initialData.skills:", typeof initialData?.skills);
-
-
+  }, [initialData, didInit]);
 
   const toggleSkill = (id: string) => {
     setSelectedSkillIds(prev =>
@@ -71,10 +64,9 @@ console.log("Type of initialData.skills:", typeof initialData?.skills);
       title,
       description,
       budget,
-      skills: selectedSkillIds, // send skill IDs
+      skills: selectedSkillIds,
     });
   };
-  
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -106,7 +98,7 @@ console.log("Type of initialData.skills:", typeof initialData?.skills);
           id="budget"
           type="number"
           value={budget}
-           onChange={e => setBudget(Number(e.target.value))}
+          onChange={e => setBudget(Number(e.target.value))}
           min="0"
           required
         />
