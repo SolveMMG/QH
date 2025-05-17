@@ -13,19 +13,35 @@ const skillSchema = z.object({
 router.get('/', async (req, res) => {
   try {
     const prisma = req.prisma;
-    
-    const skills = await prisma.skill.findMany({
-      orderBy: {
-        name: 'asc'
-      }
-    });
-    
+
+    const idsParam = req.query.ids;
+    let skills;
+
+    if (idsParam) {
+      const ids = idsParam.split(',');
+      skills = await prisma.skill.findMany({
+        where: {
+          id: { in: ids }
+        },
+        orderBy: {
+          name: 'asc'
+        }
+      });
+    } else {
+      skills = await prisma.skill.findMany({
+        orderBy: {
+          name: 'asc'
+        }
+      });
+    }
+
     res.json(skills);
   } catch (error) {
     console.error('Error fetching skills:', error);
     res.status(500).json({ message: 'Server error while fetching skills' });
   }
 });
+
 
 // Create a new skill (employer only)
 router.post('/', authenticateToken, isEmployer, async (req, res) => {

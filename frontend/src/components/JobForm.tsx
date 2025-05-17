@@ -29,34 +29,38 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
   const [didInit, setDidInit] = useState(false);
 
+  // Initialize form fields and selected skill IDs from initialData
+  useEffect(() => {
+    if (!didInit && initialData) {
+      setTitle(initialData.title || '');
+      setDescription(initialData.description || '');
+      setBudget(Number(initialData.budget) || 0);
+
+      const safeSkills = Array.isArray(initialData.skills) ? initialData.skills : [];
+      setSelectedSkillIds(safeSkills);
+      setDidInit(true);
+    }
+  }, [initialData, didInit]);
+
+  // Fetch all skills if no initialData (create mode), or fetch selected skills by ID (edit mode)
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const response = await axios.get('/api/skills');
-        setSkillsFromDB(response.data);
+        if (initialData?.skills && initialData.skills.length > 0) {
+          const queryParam = initialData.skills.join(',');
+          const response = await axios.get(`/api/skills?ids=${queryParam}`);
+          setSkillsFromDB(response.data);
+        } else {
+          const response = await axios.get('/api/skills');
+          setSkillsFromDB(response.data);
+        }
       } catch (error) {
         console.error('Failed to fetch skills:', error);
       }
     };
 
     fetchSkills();
-  }, []);
-
- useEffect(() => {
-  if (!didInit && initialData) {
-    setTitle(initialData.title || '');
-    setDescription(initialData.description || '');
-    setBudget(Number(initialData.budget) || 0);
-
-    const safeSkills = Array.isArray(initialData.skills)
-      ? initialData.skills
-      : [];
-
-    setSelectedSkillIds(safeSkills);
-    setDidInit(true);
-  }
-}, [initialData, didInit]);
-
+  }, [initialData]);
 
   const toggleSkill = (id: string) => {
     setSelectedSkillIds(prev =>
@@ -113,8 +117,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       <div>
         <Label>Required Skills</Label>
         <div className="flex flex-wrap gap-2 mt-2">
-          <div className="flex flex-wrap gap-2 mt-2">
-          {Array.isArray(skillsFromDB) ? (
+          {skillsFromDB.length > 0 ? (
             skillsFromDB.map(skill => (
               <button
                 key={skill.id}
@@ -132,8 +135,6 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
           ) : (
             <p className="text-sm text-red-500">Skills could not be loaded.</p>
           )}
-        </div>
-
         </div>
       </div>
 
