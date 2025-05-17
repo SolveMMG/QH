@@ -25,7 +25,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 // app.use(cors());
 app.use(cors({
-  origin: ['https://qh-ashen.vercel.app'],
+  origin: ['https://qh-i1um.vercel.app'],
   credentials: true, // if you're using cookies/auth
 }));
 app.use(express.json());
