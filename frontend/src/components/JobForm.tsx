@@ -42,13 +42,23 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   }, []);
 
   useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.title || '');
-      setDescription(initialData.description || '');
-      setBudget(Number(initialData.budget) || 0);
-      setSelectedSkillIds(initialData.skills || []);
+  if (initialData) {
+    setTitle(initialData.title || '');
+    setDescription(initialData.description || '');
+    setBudget(Number(initialData.budget) || 0);
+
+    if (Array.isArray(initialData.skills)) {
+      setSelectedSkillIds(initialData.skills);
+    } else {
+      console.warn("initialData.skills is not an array", initialData.skills);
+      setSelectedSkillIds([]);
     }
-  }, [initialData]);
+  }
+}, [initialData]);
+console.log("initialData.skills in JobForm:", initialData?.skills);
+console.log("Type of initialData.skills:", typeof initialData?.skills);
+
+
 
   const toggleSkill = (id: string) => {
     setSelectedSkillIds(prev =>
