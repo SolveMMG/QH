@@ -48,9 +48,16 @@ const CreateJob = () => {
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <JobForm
+              initialData={{
+                title: '',
+                description: '',
+                budget: 0,
+                skills: [], // important to avoid .map error
+              }}
               onSubmit={handleSubmit}
               isLoading={isLoading}
             />
+
           </div>
         </div>
       </main>
