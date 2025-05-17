@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { useJobs, Job } from '@/hooks/useJobs';
@@ -18,7 +17,7 @@ const EditJob = () => {
   useEffect(() => {
     if (id && user) {
       const foundJob = jobs.find(j => j.id === id);
-      
+
       if (foundJob) {
         // Check if user is the employer for this job
         if (foundJob.employerId !== user.id) {
@@ -57,9 +56,22 @@ const EditJob = () => {
 
   const handleSubmit = async (data: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName'>) => {
     if (!id) return;
-    
+
+    // ✅ Sanitize skills to ensure they are string IDs
+    const sanitizedSkills = data.skills?.map(skill =>
+      typeof skill === 'string' ? skill : (skill as any).id
+    );
+
+    const sanitizedPayload = {
+      ...data,
+      skills: sanitizedSkills,
+    };
+
+    console.log("Payload being sent:", sanitizedPayload);
+
     try {
-      const updatedJob = await updateJob(id, data);
+      const updatedJob = await updateJob(id, sanitizedPayload);
+      console.log('Updated job:', updatedJob);
       toast.success('Job updated successfully');
       navigate(`/jobs/${id}`);
     } catch (error) {
@@ -70,11 +82,11 @@ const EditJob = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
+
       <main className="flex-1 bg-gray-50 py-8">
         <div className="container mx-auto px-4 max-w-3xl">
           <h1 className="text-3xl font-bold mb-6">Edit Job</h1>
-          
+
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <JobForm
               initialData={job}
@@ -84,7 +96,7 @@ const EditJob = () => {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

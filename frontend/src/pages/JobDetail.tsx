@@ -23,6 +23,7 @@ const JobDetail = () => {
   const [userHasApplied, setUserHasApplied] = useState(false);
   const [jobApplications, setJobApplications] = useState<any[]>([]);
 
+
   useEffect(() => {
     if (id) {
       const foundJob = jobs.find(j => j.id === id);
