@@ -241,7 +241,6 @@ router.get('/employer/dashboard', authenticateToken, isEmployer, async (req, res
                 id: true,
                 name: true,
                 email: true,
-                // add more fields if needed
               }
             },
             job: {

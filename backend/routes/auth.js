@@ -124,7 +124,7 @@ router.post('/login', async (req, res) => {
       message: 'Login successful',
       user: {
         ...userWithoutPassword,
-        lastLogin: new Date() // Update to current time
+        lastLogin: new Date() 
       },
       token
     });
