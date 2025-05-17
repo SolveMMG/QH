@@ -38,14 +38,22 @@ export interface JobsContextType {
   jobs: Job[];
   applications: Application[];
   isLoading: boolean;
-  createJob: (jobData: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName' | 'applicationCount'>) => Promise<Job>;
+  createJob: (
+    jobData: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName' | 'applicationCount'>
+  ) => Promise<Job>;
   updateJob: (id: string, jobData: Partial<Job>) => Promise<Job>;
   archiveJob: (id: string) => Promise<void>;
   applyToJob: (jobId: string, message: string) => Promise<void>;
   getJobApplications: (jobId: string) => Application[];
   getUserApplications: () => Application[];
   getUserJobs: () => Job[];
-  filterJobs: (skills: string[], search: string, status?: string, page?: number, limit?: number) => Promise<{
+  filterJobs: (
+    skills: string[],
+    search: string,
+    status?: string,
+    page?: number,
+    limit?: number
+  ) => Promise<{
     jobs: Job[];
     pagination: {
       total: number;
@@ -58,7 +66,17 @@ export interface JobsContextType {
   availableSkills: Skill[];
   refreshJobs: () => Promise<void>;
   getJobById: (id: string) => Promise<Job | null>;
+  fetchApplicationsForJob: (jobId: string) => Promise<Application[]>; // <- Added method
 }
+
+export interface JobWithApplications {
+  id: string;
+  title: string;
+  createdAt: string;
+  applications: Application[];
+}
+
+
 
 
 // @/types/jobs.ts

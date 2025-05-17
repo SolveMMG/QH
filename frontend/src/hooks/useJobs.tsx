@@ -17,3 +17,4 @@ export const useJobs = () => {
 };
 
 export { default as JobsProvider } from '@/providers/JobsProvider';
+

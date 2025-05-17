@@ -98,6 +98,8 @@ router.post('/jobs/:jobId', authenticateToken, isFreelancer, rateLimitApplicatio
   }
 });
 
+
+
 // Get all applications for a specific job (employer only)
 router.get('/jobs/:jobId', authenticateToken, isEmployer, async (req, res) => {
   try {
@@ -218,5 +220,50 @@ router.get('/freelancer/dashboard', authenticateToken, isFreelancer, async (req,
     res.status(500).json({ message: 'Server error while fetching freelancer applications' });
   }
 });
+
+// GET /api/applications/employer/dashboard
+router.get('/employer/dashboard', authenticateToken, isEmployer, async (req, res) => {
+  try {
+    const employerId = req.user.id;
+    const prisma = req.prisma;
+
+    // Get all jobs posted by this employer, along with their applications
+    const jobsWithApplications = await prisma.job.findMany({
+      where: {
+        employerId,
+        deletedAt: null
+      },
+      include: {
+        applications: {
+          include: {
+            applicant: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                // add more fields if needed
+              }
+            },
+            job: {
+              select: {
+                id: true,
+                title: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.status(200).json(jobsWithApplications);
+  } catch (error) {
+    console.error('Error fetching employer dashboard applications:', error);
+    res.status(500).json({ message: 'Server error while fetching applications for employer dashboard' });
+  }
+});
+
 
 module.exports = router;

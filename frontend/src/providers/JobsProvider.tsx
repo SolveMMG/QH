@@ -94,6 +94,7 @@ export const JobsProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  
   const createJob = async (jobData: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName' | 'applicationCount'>) => {
     if (!user || user.role !== 'employer') {
       toast.error('Only employers can create jobs');
@@ -206,6 +207,8 @@ export const JobsProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+
+
   const getJobApplications = (jobId: string): Application[] => {
     return applications.filter(app => app.jobId === jobId);
   };
@@ -268,6 +271,24 @@ export const JobsProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(false);
     }
   };
+const fetchApplicationsForJob = async (jobId: string): Promise<Application[]> => {
+  if (!user || user.role !== 'employer') {
+    toast.error('Only employers can fetch applications for a job');
+    return [];
+  }
+
+  try {
+    const response = await api.get(`/applications/jobs/${jobId}`);
+    const applications = response.data.applications || [];
+    return applications;
+  } catch (error) {
+    console.error('Error fetching applications for job:', error);
+    toast.error('Failed to fetch applications for this job');
+    return [];
+  }
+};
+
+
 
   return (
     <JobsContext.Provider
@@ -286,7 +307,8 @@ export const JobsProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         getAvailableSkills,
         availableSkills,
         refreshJobs,
-        getJobById
+        getJobById,
+        fetchApplicationsForJob,
       }}
     >
       {children}
