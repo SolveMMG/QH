@@ -17,7 +17,7 @@ interface JobFormProps {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: (string | Skill)[];
+    skills?: (string | Skill)[] | string | Skill; // allow single string or object too
   };
 }
 
@@ -29,35 +29,63 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
   const [didInit, setDidInit] = useState(false);
 
-  // Initialize form fields and normalize skills from initialData
+  // Debug log to check initialData.skills shape
+  useEffect(() => {
+    console.log('initialData.skills:', initialData?.skills);
+    if (initialData?.skills && !Array.isArray(initialData.skills)) {
+      console.warn('Warning: initialData.skills is not an array!', initialData.skills);
+    }
+  }, [initialData]);
+
+  // Initialize form fields and normalize skills from initialData safely
   useEffect(() => {
     if (!didInit && initialData) {
       setTitle(initialData.title || '');
       setDescription(initialData.description || '');
       setBudget(Number(initialData.budget) || 0);
 
-      const safeSkills = Array.isArray(initialData.skills)
-        ? initialData.skills.map(s => (typeof s === 'string' ? s : s.id))
-        : [];
+      let safeSkills: string[] = [];
+
+      if (initialData.skills) {
+        if (Array.isArray(initialData.skills)) {
+          safeSkills = initialData.skills.map(s => (typeof s === 'string' ? s : s.id));
+        } else if (typeof initialData.skills === 'string') {
+          safeSkills = [initialData.skills];
+        } else if (typeof initialData.skills === 'object' && initialData.skills.id) {
+          safeSkills = [initialData.skills.id];
+        }
+      }
 
       setSelectedSkillIds(safeSkills);
       setDidInit(true);
     }
   }, [initialData, didInit]);
 
-  // Fetch all skills (or only selected skills for edit mode)
+  // Fetch skills from API, either filtered by selected ids or all
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        if (initialData?.skills && initialData.skills.length > 0) {
-          const ids = initialData.skills.map(s => (typeof s === 'string' ? s : s.id));
-          const queryParam = ids.join(',');
-          const response = await axios.get(`/api/skills?ids=${queryParam}`);
-          setSkillsFromDB(response.data);
-        } else {
-          const response = await axios.get('/api/skills');
-          setSkillsFromDB(response.data);
+        if (initialData?.skills) {
+          let ids: string[] = [];
+
+          if (Array.isArray(initialData.skills)) {
+            ids = initialData.skills.map(s => (typeof s === 'string' ? s : s.id));
+          } else if (typeof initialData.skills === 'string') {
+            ids = [initialData.skills];
+          } else if (typeof initialData.skills === 'object' && initialData.skills.id) {
+            ids = [initialData.skills.id];
+          }
+
+          if (ids.length > 0) {
+            const queryParam = ids.join(',');
+            const response = await axios.get(`/api/skills?ids=${queryParam}`);
+            setSkillsFromDB(response.data);
+            return;
+          }
         }
+        // fallback to fetching all skills if no initial skills
+        const response = await axios.get('/api/skills');
+        setSkillsFromDB(response.data);
       } catch (error) {
         console.error('Failed to fetch skills:', error);
       }
@@ -113,7 +141,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
           type="number"
           value={budget}
           onChange={e => setBudget(Number(e.target.value))}
-          min="0"
+          min={0}
           required
         />
       </div>
@@ -121,7 +149,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       <div>
         <Label>Required Skills</Label>
         <div className="flex flex-wrap gap-2 mt-2">
-          {skillsFromDB?.length > 0 ? (
+          {Array.isArray(skillsFromDB) && skillsFromDB.length > 0 ? (
             skillsFromDB.map(skill => (
               <button
                 key={skill.id}
