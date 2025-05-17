@@ -17,7 +17,7 @@ interface JobFormProps {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: string[];
+    skills?: (string | Skill)[];
   };
 }
 
@@ -29,25 +29,29 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
   const [didInit, setDidInit] = useState(false);
 
-  // Initialize form fields and selected skill IDs from initialData
+  // Initialize form fields and normalize skills from initialData
   useEffect(() => {
     if (!didInit && initialData) {
       setTitle(initialData.title || '');
       setDescription(initialData.description || '');
       setBudget(Number(initialData.budget) || 0);
 
-      const safeSkills = Array.isArray(initialData.skills) ? initialData.skills : [];
+      const safeSkills = Array.isArray(initialData.skills)
+        ? initialData.skills.map(s => (typeof s === 'string' ? s : s.id))
+        : [];
+
       setSelectedSkillIds(safeSkills);
       setDidInit(true);
     }
   }, [initialData, didInit]);
 
-  // Fetch all skills if no initialData (create mode), or fetch selected skills by ID (edit mode)
+  // Fetch all skills (or only selected skills for edit mode)
   useEffect(() => {
     const fetchSkills = async () => {
       try {
         if (initialData?.skills && initialData.skills.length > 0) {
-          const queryParam = initialData.skills.join(',');
+          const ids = initialData.skills.map(s => (typeof s === 'string' ? s : s.id));
+          const queryParam = ids.join(',');
           const response = await axios.get(`/api/skills?ids=${queryParam}`);
           setSkillsFromDB(response.data);
         } else {
@@ -117,7 +121,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       <div>
         <Label>Required Skills</Label>
         <div className="flex flex-wrap gap-2 mt-2">
-          {skillsFromDB.length > 0 ? (
+          {skillsFromDB?.length > 0 ? (
             skillsFromDB.map(skill => (
               <button
                 key={skill.id}
