@@ -62,37 +62,45 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   }, [initialData, didInit]);
 
   // Fetch skills from API, either filtered by selected ids or all
-  useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        if (initialData?.skills) {
-          let ids: string[] = [];
+ useEffect(() => {
+  const fetchSkills = async () => {
+    try {
+      if (initialData?.skills) {
+        let ids: string[] = [];
 
-          if (Array.isArray(initialData.skills)) {
-            ids = initialData.skills.map(s => (typeof s === 'string' ? s : s.id));
-          } else if (typeof initialData.skills === 'string') {
-            ids = [initialData.skills];
-          } else if (typeof initialData.skills === 'object' && initialData.skills.id) {
-            ids = [initialData.skills.id];
-          }
-
-          if (ids.length > 0) {
-            const queryParam = ids.join(',');
-            const response = await axios.get(`/api/skills?ids=${queryParam}`);
-            setSkillsFromDB(response.data);
-            return;
-          }
+        if (Array.isArray(initialData.skills)) {
+          ids = initialData.skills.map(s => (typeof s === 'string' ? s : s.id));
+        } else if (typeof initialData.skills === 'string') {
+          ids = [initialData.skills];
+        } else if (typeof initialData.skills === 'object' && 'id' in initialData.skills) {
+          ids = [initialData.skills.id];
         }
-        // fallback to fetching all skills if no initial skills
-        const response = await axios.get('/api/skills');
-        setSkillsFromDB(response.data);
-      } catch (error) {
-        console.error('Failed to fetch skills:', error);
-      }
-    };
 
-    fetchSkills();
-  }, [initialData]);
+        console.log('Normalized initialData.skills:', ids);
+
+        if (ids.length > 0) {
+          const queryParam = ids.join(',');
+          console.log('Fetching skills with IDs:', queryParam);
+          const response = await axios.get(`/api/skills?ids=${queryParam}`);
+          console.log('Skills response:', response.data);
+          setSkillsFromDB(response.data);
+          return;
+        }
+      }
+
+      // fallback to fetching all skills if no initial skills
+      console.log('Fetching all skills');
+      const response = await axios.get('/api/skills');
+      console.log('All skills response:', response.data);
+      setSkillsFromDB(response.data);
+    } catch (error: any) {
+      console.error('Failed to fetch skills:', error.response?.data || error.message || error);
+    }
+  };
+
+  fetchSkills();
+}, [initialData]);
+
 
   const toggleSkill = (id: string) => {
     setSelectedSkillIds(prev =>
