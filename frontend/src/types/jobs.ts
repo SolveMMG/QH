@@ -60,16 +60,6 @@ export interface JobsContextType {
   getJobById: (id: string) => Promise<Job | null>;
 }
 
-// Sample skills for reference
-export const AVAILABLE_SKILLS: Skill[] = [
-  { id: '1', name: 'React' },
-  { id: '2', name: 'Node.js' },
-  { id: '3', name: 'TypeScript' },
-  { id: '4', name: 'Python' },
-  { id: '5', name: 'UI/UX Design' },
-  { id: '6', name: 'JavaScript' },
-  { id: '7', name: 'GraphQL' },
-  { id: '8', name: 'React Native' },
-  { id: '9', name: 'AWS' },
-  { id: '10', name: 'Docker' },
-];
+
+// @/types/jobs.ts
+export const AVAILABLE_SKILLS = ['JavaScript', 'React', 'Node.js', 'Python', 'UI/UX Design', 'Docker', 'AWS','React Native', 'GraphQL', 'TypeScript' ];
