@@ -1,5 +1,4 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useJobs } from '@/hooks/useJobs';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,7 +17,13 @@ const CreateJob = () => {
     getAvailableSkills();
   }, [getAvailableSkills]);
 
-  // Redirect if not logged in or not an employer
+  const initialJobData = useMemo(() => ({
+    title: '',
+    description: '',
+    budget: 0,
+    skills: [], // Ensure it's always an array
+  }), []);
+
   if (!user) {
     return <Navigate to="/login" />;
   }
@@ -48,16 +53,10 @@ const CreateJob = () => {
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <JobForm
-              initialData={{
-                title: '',
-                description: '',
-                budget: 0,
-                skills: [], 
-              }}
+              initialData={initialJobData}
               onSubmit={handleSubmit}
               isLoading={isLoading}
             />
-
           </div>
         </div>
       </main>

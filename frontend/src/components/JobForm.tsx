@@ -42,15 +42,21 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
     fetchSkills();
   }, []);
 
-  useEffect(() => {
-    if (!didInit && initialData) {
-      setTitle(initialData.title || '');
-      setDescription(initialData.description || '');
-      setBudget(Number(initialData.budget) || 0);
-      setSelectedSkillIds(Array.isArray(initialData.skills) ? initialData.skills : []);
-      setDidInit(true);
-    }
-  }, [initialData, didInit]);
+ useEffect(() => {
+  if (!didInit && initialData) {
+    setTitle(initialData.title || '');
+    setDescription(initialData.description || '');
+    setBudget(Number(initialData.budget) || 0);
+
+    const safeSkills = Array.isArray(initialData.skills)
+      ? initialData.skills
+      : [];
+
+    setSelectedSkillIds(safeSkills);
+    setDidInit(true);
+  }
+}, [initialData, didInit]);
+
 
   const toggleSkill = (id: string) => {
     setSelectedSkillIds(prev =>
@@ -107,20 +113,27 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       <div>
         <Label>Required Skills</Label>
         <div className="flex flex-wrap gap-2 mt-2">
-          {skillsFromDB.map(skill => (
-            <button
-              key={skill.id}
-              type="button"
-              className={`px-3 py-1 rounded-full border text-sm transition ${
-                selectedSkillIds.includes(skill.id)
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300'
-              }`}
-              onClick={() => toggleSkill(skill.id)}
-            >
-              {skill.name}
-            </button>
-          ))}
+          <div className="flex flex-wrap gap-2 mt-2">
+          {Array.isArray(skillsFromDB) ? (
+            skillsFromDB.map(skill => (
+              <button
+                key={skill.id}
+                type="button"
+                className={`px-3 py-1 rounded-full border text-sm transition ${
+                  selectedSkillIds.includes(skill.id)
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300'
+                }`}
+                onClick={() => toggleSkill(skill.id)}
+              >
+                {skill.name}
+              </button>
+            ))
+          ) : (
+            <p className="text-sm text-red-500">Skills could not be loaded.</p>
+          )}
+        </div>
+
         </div>
       </div>
 
