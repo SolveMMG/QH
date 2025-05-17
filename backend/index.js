@@ -26,11 +26,14 @@ const PORT = process.env.PORT || 5000;
 // app.use(cors());
 app.use(cors({
   origin: [
-    'https://qh-i1um.vercel.app/',
-    'https://qh-i1um-solvemmgs-projects.vercel.app/'
+    'http://localhost:5173',
+    'https://qh-i1um.vercel.app',
+    'https://qh-i1um-solvemmgs-projects.vercel.app',
+    'https://qh-i1um-4bkhh4299-solvemmgs-projects.vercel.app'
   ],
   credentials: true,
 }));
+
 
 app.use(express.json());
 
