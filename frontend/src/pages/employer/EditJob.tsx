@@ -6,7 +6,6 @@ import JobForm from '@/components/JobForm';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from '@/components/ui/sonner';
-
 const EditJob = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -53,33 +52,36 @@ const EditJob = () => {
       </div>
     );
   }
-
   const handleSubmit = async (data: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName'>) => {
     if (!id) return;
 
-    // ✅ Sanitize skills to ensure they are string IDs
-    const sanitizedSkills = data.skills?.map(skill =>
+    const sanitizedSkills = Array.isArray(data.skills)
+  ? data.skills.map(skill =>
       typeof skill === 'string' ? skill : (skill as any).id
-    );
+    )
+  : [];
 
-    const sanitizedPayload = {
-      ...data,
-      skills: sanitizedSkills,
-    };
+      const sanitizedPayload = {
+        ...data,
+        skills: sanitizedSkills,
+      };
+     console.log("Is Array:", Array.isArray(data.skills));
 
-    console.log("Payload being sent:", sanitizedPayload);
 
+
+    // console.log("Payload being sent:", sanitizedPayload);
     try {
       const updatedJob = await updateJob(id, sanitizedPayload);
-      console.log('Updated job:', updatedJob);
+      // console.log('Updated job:', updatedJob);
       toast.success('Job updated successfully');
       navigate(`/jobs/${id}`);
     } catch (error) {
+
       // Error is already handled in the updateJob function
     }
   };
-  console.log("job.skills:", job.skills);
-console.log("typeof job.skills:", typeof job.skills);
+//   console.log("job.skills:", job.skills);
+// console.log("typeof job.skills:", typeof job.skills);
 
 
   return (
