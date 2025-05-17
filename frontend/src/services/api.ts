@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create an axios instance
 const api = axios.create({
   // Use relative URL which will work in both development and production
-  baseURL: import.meta.env.VITE_API_BASE_URL ||'/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   }
