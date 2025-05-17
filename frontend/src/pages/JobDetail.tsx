@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import api from '@/services/api';
-import { Application } from '@/types/jobs'; // Make sure this type exists
+import { Application } from '@/types/jobs'; 
 
 const fetchApplicationsForJob = async (jobId: string, user: any): Promise<Application[]> => {
   if (!user || user.role !== 'employer') {

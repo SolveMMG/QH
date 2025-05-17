@@ -29,7 +29,7 @@ const CreateJob = () => {
 
   const handleSubmit = async (jobData) => {
     try {
-      console.log("Payload being sent:", jobData); // where jobData is the object you're sending
+      console.log("Payload being sent:", jobData); 
       const job = await createJob(jobData);
       toast.success('Job created successfully!');
       navigate(`/jobs/${job.id}`);
@@ -52,7 +52,7 @@ const CreateJob = () => {
                 title: '',
                 description: '',
                 budget: 0,
-                skills: [], // important to avoid .map error
+                skills: [], 
               }}
               onSubmit={handleSubmit}
               isLoading={isLoading}

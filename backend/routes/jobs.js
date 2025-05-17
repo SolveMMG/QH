@@ -132,7 +132,7 @@ router.get('/:id', async (req, res) => {
     const job = await prisma.job.findUnique({
       where: { 
         id,
-        deletedAt: null // Only show non-deleted job
+        deletedAt: null 
       },
       include: {
         employer: {

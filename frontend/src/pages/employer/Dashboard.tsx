@@ -45,7 +45,7 @@ const EmployerDashboard = () => {
   try {
     const response = await api.get(`/applications/jobs/${jobId}`);
     // console.log('API Response:', response.data);  // log the entire data structure
-    return response.data || [];  // assume it's an array, not an object with `applications`
+    return response.data || [];  
   } catch (error) {
     console.error('Error fetching applications for job:', error);
     toast.error('Failed to fetch applications for this job');
