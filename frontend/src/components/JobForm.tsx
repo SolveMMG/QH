@@ -17,7 +17,7 @@ interface JobFormProps {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: string[]; // assume array of skill IDs or names depending on your backend
+    skills?: string[];
   };
 }
 
@@ -27,14 +27,23 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [budget, setBudget] = useState<number>(0);
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
+  const [skillFetchError, setSkillFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSkills = async () => {
       try {
         const response = await axios.get('/api/skills');
-        setSkillsFromDB(response.data); // expected to be Skill[]
+
+        if (Array.isArray(response.data)) {
+          setSkillsFromDB(response.data);
+          setSkillFetchError(null);
+        } else {
+          throw new Error('Invalid skills format');
+        }
       } catch (error) {
         console.error('Failed to fetch skills:', error);
+        setSkillFetchError('Unable to load skills. You can still submit the job without selecting skills.');
+        setSkillsFromDB([]); // prevent undefined errors
       }
     };
 
@@ -62,10 +71,9 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       title,
       description,
       budget,
-      skills: selectedSkillIds, // send skill IDs
+      skills: selectedSkillIds,
     });
   };
-  
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -97,7 +105,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
           id="budget"
           type="number"
           value={budget}
-           onChange={e => setBudget(Number(e.target.value))}
+          onChange={e => setBudget(Number(e.target.value))}
           min="0"
           required
         />
@@ -105,21 +113,25 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
 
       <div>
         <Label>Required Skills</Label>
+        {skillFetchError && (
+          <p className="text-red-600 text-sm mb-2">{skillFetchError}</p>
+        )}
         <div className="flex flex-wrap gap-2 mt-2">
-          {skillsFromDB.map(skill => (
-            <button
-              key={skill.id}
-              type="button"
-              className={`px-3 py-1 rounded-full border text-sm transition ${
-                selectedSkillIds.includes(skill.id)
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300'
-              }`}
-              onClick={() => toggleSkill(skill.id)}
-            >
-              {skill.name}
-            </button>
-          ))}
+          {Array.isArray(skillsFromDB) &&
+            skillsFromDB.map(skill => (
+              <button
+                key={skill.id}
+                type="button"
+                className={`px-3 py-1 rounded-full border text-sm transition ${
+                  selectedSkillIds.includes(skill.id)
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300'
+                }`}
+                onClick={() => toggleSkill(skill.id)}
+              >
+                {skill.name}
+              </button>
+            ))}
         </div>
       </div>
 
