@@ -17,7 +17,7 @@ interface JobFormProps {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: string[];
+    skills?: string[]; // assume array of skill IDs or names depending on your backend
   };
 }
 
@@ -27,37 +27,27 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [budget, setBudget] = useState<number>(0);
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
-  const [skillsError, setSkillsError] = useState<string>('');
-  const [didInit, setDidInit] = useState(false);
-
-  useEffect(() => {
-    if (!didInit && initialData) {
-      setTitle(initialData.title || '');
-      setDescription(initialData.description || '');
-      setBudget(Number(initialData.budget) || 0);
-      setSelectedSkillIds(Array.isArray(initialData.skills) ? initialData.skills : []);
-      setDidInit(true);
-    }
-  }, [initialData, didInit]);
 
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const url = initialData?.skills?.length
-          ? `/api/skills?ids=${initialData.skills.join(',')}`
-          : '/api/skills';
-
-        const response = await axios.get(url);
-        setSkillsFromDB(response.data);
-        setSkillsError('');
-      } catch (error: any) {
-        console.error('Error fetching skills:', error);
-        setSkillsFromDB([]);
-        setSkillsError('Failed to load skills. Please try again later.');
+        const response = await axios.get('/api/skills');
+        setSkillsFromDB(response.data); // expected to be Skill[]
+      } catch (error) {
+        console.error('Failed to fetch skills:', error);
       }
     };
 
     fetchSkills();
+  }, []);
+
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || '');
+      setDescription(initialData.description || '');
+      setBudget(Number(initialData.budget) || 0);
+      setSelectedSkillIds(initialData.skills || []);
+    }
   }, [initialData]);
 
   const toggleSkill = (id: string) => {
@@ -68,8 +58,14 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ title, description, budget, skills: selectedSkillIds });
+    onSubmit({
+      title,
+      description,
+      budget,
+      skills: selectedSkillIds, // send skill IDs
+    });
   };
+  
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -101,7 +97,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
           id="budget"
           type="number"
           value={budget}
-          onChange={e => setBudget(Number(e.target.value))}
+           onChange={e => setBudget(Number(e.target.value))}
           min="0"
           required
         />
@@ -110,26 +106,20 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       <div>
         <Label>Required Skills</Label>
         <div className="flex flex-wrap gap-2 mt-2">
-          {skillsError ? (
-            <p className="text-sm text-red-500">{skillsError}</p>
-          ) : skillsFromDB.length > 0 ? (
-            skillsFromDB.map(skill => (
-              <button
-                key={skill.id}
-                type="button"
-                className={`px-3 py-1 rounded-full border text-sm transition ${
-                  selectedSkillIds.includes(skill.id)
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-300'
-                }`}
-                onClick={() => toggleSkill(skill.id)}
-              >
-                {skill.name}
-              </button>
-            ))
-          ) : (
-            <p className="text-sm text-gray-500">No skills available.</p>
-          )}
+          {skillsFromDB.map(skill => (
+            <button
+              key={skill.id}
+              type="button"
+              className={`px-3 py-1 rounded-full border text-sm transition ${
+                selectedSkillIds.includes(skill.id)
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300'
+              }`}
+              onClick={() => toggleSkill(skill.id)}
+            >
+              {skill.name}
+            </button>
+          ))}
         </div>
       </div>
 

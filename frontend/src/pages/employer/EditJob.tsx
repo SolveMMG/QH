@@ -78,6 +78,9 @@ const EditJob = () => {
       // Error is already handled in the updateJob function
     }
   };
+  console.log("job.skills:", job.skills);
+console.log("typeof job.skills:", typeof job.skills);
+
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -89,10 +92,17 @@ const EditJob = () => {
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <JobForm
-              initialData={job}
-              onSubmit={handleSubmit}
-              isLoading={isLoading}
-            />
+                initialData={{
+                  title: job.title,
+                  description: job.description,
+                  budget: job.budget,
+                  skills: Array.isArray(job.skills)
+                    ? job.skills.map((skill) => skill.id)
+                    : [], // fallback
+                }}
+                onSubmit={handleSubmit}
+                isLoading={isLoading}
+              />
           </div>
         </div>
       </main>
