@@ -76,13 +76,22 @@ const getAvailableSkills = async (): Promise<Skill[]> => {
     const skills = response.data;
 
     console.log('API Response:', skills);
+    console.log('Skills data:', skills);
+    console.log('Type check:', skills.map(s => ({ id: typeof s.id, name: typeof s.name })));
+
 
     if (
       !Array.isArray(skills) ||
-      !skills.every(skill => typeof skill.id === 'string' && typeof skill.name === 'string')
+      !skills.every(skill =>
+        skill &&
+        typeof skill === 'object' &&
+        typeof skill.id === 'string' &&
+        typeof skill.name === 'string'
+      )
     ) {
       throw new Error('Invalid skills format');
     }
+
 
     setAvailableSkills(skills);
     return skills;
