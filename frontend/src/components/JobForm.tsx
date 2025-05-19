@@ -30,32 +30,34 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [skillFetchError, setSkillFetchError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        const response = await axios.get('/api/skills');
-        
-        // Safely check if response.data is an array of objects with id and name
-       if (
-          Array.isArray(response.data) &&
-          response.data.every(
-            (s) => typeof s === 'object' && typeof s.id === 'string' && typeof s.name === 'string'
-          )
-        ) {
+  const fetchSkills = async () => {
+    try {
+      const response = await axios.get('/api/skills');
 
-          setSkillsFromDB(response.data);
-          setSkillFetchError(null);
-        } else {
-          throw new Error('Invalid skills format');
-        }
-      } catch (error) {
-        console.error('Failed to fetch skills:', error);
-        setSkillFetchError('Unable to load skills. You can still submit the job without selecting skills.');
-        setSkillsFromDB([]);
+      // CORRECT: check type, not just truthiness
+      if (
+        Array.isArray(response.data) &&
+        response.data.every(
+          s =>
+            s &&
+            typeof s.id === 'string' &&
+            typeof s.name === 'string'
+        )
+      ) {
+        setSkillsFromDB(response.data);
+        setSkillFetchError(null);
+      } else {
+        throw new Error('Invalid skills format');
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch skills:', error);
+      setSkillFetchError('Unable to load skills. You can still submit the job without selecting skills.');
+      setSkillsFromDB([]);
+    }
+  };
 
-    fetchSkills();
-  }, []);
+  fetchSkills();
+}, []);
 
   useEffect(() => {
     if (initialData) {

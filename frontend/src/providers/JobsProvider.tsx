@@ -79,19 +79,19 @@ const getAvailableSkills = async (): Promise<Skill[]> => {
     console.log('Skills data:', skills);
     console.log('Type check:', skills.map(s => ({ id: typeof s.id, name: typeof s.name })));
 
-
+    // Use type validation, not just truthiness
     if (
       !Array.isArray(skills) ||
-      !skills.every(skill =>
-        skill &&
-        typeof skill === 'object' &&
-        typeof skill.id === 'string' &&
-        typeof skill.name === 'string'
+      !skills.every(
+        (skill: any) =>
+          skill &&
+          typeof skill === 'object' &&
+          typeof skill.id === 'string' &&
+          typeof skill.name === 'string'
       )
     ) {
       throw new Error('Invalid skills format');
     }
-
 
     setAvailableSkills(skills);
     return skills;
