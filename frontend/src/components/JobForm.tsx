@@ -29,22 +29,21 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
   const [skillFetchError, setSkillFetchError] = useState<string | null>(null);
 
-  useEffect(() => {
+ useEffect(() => {
   const fetchSkills = async () => {
     try {
-      const response = await axios.get('/api/skills');
+      const { data } = await axios.get('/api/skills');
 
-      // CORRECT: check type, not just truthiness
       if (
-        Array.isArray(response.data) &&
-        response.data.every(
-          s =>
+        Array.isArray(data) &&
+        data.every(
+          (s): s is Skill =>
             s &&
             typeof s.id === 'string' &&
             typeof s.name === 'string'
         )
       ) {
-        setSkillsFromDB(response.data);
+        setSkillsFromDB(data);
         setSkillFetchError(null);
       } else {
         throw new Error('Invalid skills format');
@@ -58,6 +57,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
 
   fetchSkills();
 }, []);
+
 
   useEffect(() => {
     if (initialData) {

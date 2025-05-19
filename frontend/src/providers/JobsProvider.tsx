@@ -72,18 +72,12 @@ export const JobsProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 const getAvailableSkills = async (): Promise<Skill[]> => {
   try {
-    const response = await api.get('/skills');
-    const skills = response.data;
+    const { data } = await api.get('/skills');
 
-    console.log('API Response:', skills);
-    console.log('Skills data:', skills);
-    console.log('Type check:', skills.map(s => ({ id: typeof s.id, name: typeof s.name })));
-
-    // Use type validation, not just truthiness
     if (
-      !Array.isArray(skills) ||
-      !skills.every(
-        (skill: any) =>
+      !Array.isArray(data) ||
+      !data.every(
+        (skill): skill is Skill =>
           skill &&
           typeof skill === 'object' &&
           typeof skill.id === 'string' &&
@@ -93,8 +87,8 @@ const getAvailableSkills = async (): Promise<Skill[]> => {
       throw new Error('Invalid skills format');
     }
 
-    setAvailableSkills(skills);
-    return skills;
+    setAvailableSkills(data);
+    return data;
   } catch (error) {
     console.error('Failed to fetch skills:', error);
     toast.error('Failed to fetch skills');
