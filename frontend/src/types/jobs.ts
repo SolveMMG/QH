@@ -64,6 +64,7 @@ export interface JobsContextType {
   }>;
   getAvailableSkills: () => Promise<Skill[]>;
   availableSkills: Skill[];
+  skillFetchError: string | boolean | null;
   refreshJobs: () => Promise<void>;
   getJobById: (id: string) => Promise<Job | null>;
   fetchApplicationsForJob: (jobId: string) => Promise<Application[]>; // <- Added method

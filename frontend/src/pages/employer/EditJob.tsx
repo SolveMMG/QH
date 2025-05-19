@@ -54,7 +54,10 @@ const EditJob = () => {
     );
   }
 
-  const handleSubmit = async (data: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName'>) => {
+ const handleSubmit = async (
+  data: { title: string; description: string; budget: number; skills: string[] }
+) => {
+
     if (!id) return;
 
     // ✅ Sanitize skills to ensure they are string IDs
@@ -64,8 +67,12 @@ const EditJob = () => {
 
     const sanitizedPayload = {
       ...data,
-      skills: sanitizedSkills,
+      status: job.status, // Or 'open' or any logic you want
+      skills: data.skills.map(skill =>
+        typeof skill === 'string' ? skill : (skill as any).id
+      ),
     };
+
 
     console.log("Payload being sent:", sanitizedPayload);
 

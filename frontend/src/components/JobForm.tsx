@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-
-interface Skill {
-  id: string;
-  name: string;
-}
+import { useJobs } from '@/hooks/useJobs';
+import { Skill } from '@/types/jobs';
 
 interface JobFormProps {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: {
+    title: string;
+    description: string;
+    budget: number;
+    skills: string[]; // skill IDs
+  }) => void;
   isLoading?: boolean;
   initialData?: {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: string[];
+    skills?: string[]; // skill IDs
   };
 }
 
@@ -26,39 +27,8 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [description, setDescription] = useState('');
   const [budget, setBudget] = useState<number>(0);
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
-  const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
-  const [skillFetchError, setSkillFetchError] = useState<string | null>(null);
 
- useEffect(() => {
-  const fetchSkills = async () => {
-    try {
-      const { data } = await axios.get('/api/skills');
-
-      if (
-        Array.isArray(data) &&
-        data.every(
-          (s): s is Skill =>
-            s &&
-            typeof s.id === 'string' &&
-            typeof s.name === 'string'
-        )
-      ) {
-        setSkillsFromDB(data);
-        setSkillFetchError(null);
-        console.log('Fetched skills:', data);
-      } else {
-        throw new Error('Invalid skills format');
-      }
-    } catch (error) {
-      console.error('Failed to fetch skills:', error);
-      setSkillFetchError('Unable to load skills. You can still submit the job without selecting skills.');
-      setSkillsFromDB([]);
-    }
-  };
-
-  fetchSkills();
-}, []);
-
+  const { availableSkills, skillFetchError } = useJobs();
 
   useEffect(() => {
     if (initialData) {
@@ -127,20 +97,24 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
           <p className="text-red-600 text-sm mb-2">{skillFetchError}</p>
         )}
         <div className="flex flex-wrap gap-2 mt-2">
-          {skillsFromDB.map(skill => (
-            <button
-              key={skill.id}
-              type="button"
-              className={`px-3 py-1 rounded-full border text-sm transition ${
-                selectedSkillIds.includes(skill.id)
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300'
-              }`}
-              onClick={() => toggleSkill(skill.id)}
-            >
-              {skill.name}
-            </button>
-          ))}
+          {availableSkills.length === 0 ? (
+            <p className="text-sm text-gray-500">No skills available.</p>
+          ) : (
+            availableSkills.map((skill: Skill) => (
+              <button
+                key={skill.id}
+                type="button"
+                className={`px-3 py-1 rounded-full border text-sm transition ${
+                  selectedSkillIds.includes(skill.id)
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300'
+                }`}
+                onClick={() => toggleSkill(skill.id)}
+              >
+                {skill.name}
+              </button>
+            ))
+          )}
         </div>
       </div>
 

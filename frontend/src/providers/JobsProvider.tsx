@@ -16,6 +16,8 @@ export const JobsProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const [userJobs, setUserJobs] = useState<Job[]>([]);
   const [userApplications, setUserApplications] = useState<Application[]>([]);
+  const [skillFetchError, setSkillFetchError] = useState<boolean>(false);
+
 
   useEffect(() => {
     // Load skills on initial render
@@ -72,6 +74,7 @@ export const JobsProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 const getAvailableSkills = async (): Promise<Skill[]> => {
   try {
+    setSkillFetchError(false); // Reset error state
     const { data } = await api.get('/skills');
 
     if (
@@ -88,14 +91,15 @@ const getAvailableSkills = async (): Promise<Skill[]> => {
     }
 
     setAvailableSkills(data);
-    console.log('Available skills:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch skills:', error);
+    setSkillFetchError(true);
     toast.error('Failed to fetch skills');
     return [];
   }
 };
+
 
   const getJobById = async (id: string): Promise<Job | null> => {
     try {
@@ -320,6 +324,7 @@ const fetchApplicationsForJob = async (jobId: string): Promise<Application[]> =>
         filterJobs,
         getAvailableSkills,
         availableSkills,
+        skillFetchError,
         refreshJobs,
         getJobById,
         fetchApplicationsForJob,
