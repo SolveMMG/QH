@@ -9,7 +9,6 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-brand-blue to-brand-indigo py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">

@@ -13,15 +13,13 @@ const FreelancerDashboard = () => {
   const { user } = useAuth();
   const { getUserApplications, jobs } = useJobs();
   const [applications, setApplications] = useState<Application[]>([]);
-  console.log
-
   useEffect(() => {
     const fetchApplications = async () => {
       if (user) {
         try {
           const freelancerApplications = await getUserApplications();
           setApplications(freelancerApplications);
-          console.log("Applications:", freelancerApplications);
+          // console.log("Applications:", freelancerApplications);
         } catch (error) {
           console.error('Failed to fetch applications:', error);
         }

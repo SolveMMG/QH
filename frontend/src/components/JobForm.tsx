@@ -11,14 +11,14 @@ interface JobFormProps {
     title: string;
     description: string;
     budget: number;
-    skills: string[]; // skill IDs
+    skills: string[]; 
   }) => void;
   isLoading?: boolean;
   initialData?: {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: string[]; // skill IDs
+    skills?: string[]; 
   };
 }
 

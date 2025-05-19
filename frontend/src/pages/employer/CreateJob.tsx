@@ -40,8 +40,6 @@ const CreateJob = () => {
       skills: sanitizedSkills,
     };
 
-    console.log("Payload being sent:", sanitizedPayload);
-
     const job = await createJob(sanitizedPayload);
     toast.success('Job created successfully!');
     navigate(`/jobs/${job.id}`);

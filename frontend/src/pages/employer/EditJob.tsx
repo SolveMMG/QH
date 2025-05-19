@@ -60,33 +60,32 @@ const EditJob = () => {
 
     if (!id) return;
 
-    // ✅ Sanitize skills to ensure they are string IDs
     const sanitizedSkills = data.skills?.map(skill =>
       typeof skill === 'string' ? skill : (skill as any).id
     );
 
     const sanitizedPayload = {
       ...data,
-      status: job.status, // Or 'open' or any logic you want
+      status: job.status, 
       skills: data.skills.map(skill =>
         typeof skill === 'string' ? skill : (skill as any).id
       ),
     };
 
 
-    console.log("Payload being sent:", sanitizedPayload);
+    // console.log("Payload being sent:", sanitizedPayload);
 
     try {
       const updatedJob = await updateJob(id, sanitizedPayload);
-      console.log('Updated job:', updatedJob);
+      // console.log('Updated job:', updatedJob);
       toast.success('Job updated successfully');
       navigate(`/jobs/${id}`);
     } catch (error) {
       // Error is already handled in the updateJob function
     }
   };
-  console.log("job.skills:", job.skills);
-console.log("typeof job.skills:", typeof job.skills);
+//   console.log("job.skills:", job.skills);
+// console.log("typeof job.skills:", typeof job.skills);
 
 
   return (
@@ -105,7 +104,7 @@ console.log("typeof job.skills:", typeof job.skills);
                   budget: job.budget,
                   skills: Array.isArray(job.skills)
                     ? job.skills.map((skill) => skill.id)
-                    : [], // fallback
+                    : [], 
                 }}
                 onSubmit={handleSubmit}
                 isLoading={isLoading}

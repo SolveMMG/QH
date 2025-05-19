@@ -23,7 +23,7 @@ const fetchApplicationsForJob = async (jobId: string, user: any): Promise<Applic
   try {
     const response = await api.get(`/applications/jobs/${jobId}`);
     const applications = response.data || [];
-    console.log('API Response:', response.data);
+    // console.log('API Response:', response.data);
     return applications;
   } catch (error) {
     console.error('Error fetching applications for job:', error);
