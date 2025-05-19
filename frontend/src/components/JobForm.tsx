@@ -35,7 +35,13 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
         const response = await axios.get('/api/skills');
         
         // Safely check if response.data is an array of objects with id and name
-        if (Array.isArray(response.data) && response.data.every(s => s.id && s.name)) {
+       if (
+          Array.isArray(response.data) &&
+          response.data.every(
+            (s) => typeof s === 'object' && typeof s.id === 'string' && typeof s.name === 'string'
+          )
+        ) {
+
           setSkillsFromDB(response.data);
           setSkillFetchError(null);
         } else {
