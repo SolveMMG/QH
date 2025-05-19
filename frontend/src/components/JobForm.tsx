@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { z } from 'zod';
+import { toast } from './ui/sonner';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -11,16 +13,24 @@ interface JobFormProps {
     title: string;
     description: string;
     budget: number;
-    skills: string[]; 
+    skills: string[];
   }) => void;
   isLoading?: boolean;
   initialData?: {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: string[]; 
+    skills?: string[];
   };
 }
+
+// Zod validation schema
+const jobSchema = z.object({
+  title: z.string().min(5, 'Title must be at least 5 characters').max(100, 'Title must be less than 100 characters'),
+  description: z.string().min(20, 'Description must be at least 20 characters'),
+  budget: z.number().positive('Budget must be a positive number'),
+  skills: z.array(z.string()).min(1, 'Select at least one skill'),
+});
 
 const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialData }) => {
   const [title, setTitle] = useState('');
@@ -47,12 +57,23 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+
+    const data = {
       title,
       description,
       budget,
       skills: selectedSkillIds,
-    });
+    };
+
+    const result = jobSchema.safeParse(data);
+
+    if (!result.success) {
+      const firstError = result.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+
+    onSubmit(data);
   };
 
   return (
