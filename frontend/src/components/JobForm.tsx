@@ -17,7 +17,7 @@ interface JobFormProps {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: (string | { id: string; name: string })[];
+    skills?: string[];
   };
 }
 
@@ -33,13 +33,10 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
     const fetchSkills = async () => {
       try {
         const response = await axios.get('/api/skills');
-        const skills = response.data;
-
-        if (
-          Array.isArray(skills) &&
-          skills.every(skill => typeof skill.id === 'string' && typeof skill.name === 'string')
-        ) {
-          setSkillsFromDB(skills);
+        
+        // Safely check if response.data is an array of objects with id and name
+        if (Array.isArray(response.data) && response.data.every(s => s.id && s.name)) {
+          setSkillsFromDB(response.data);
           setSkillFetchError(null);
         } else {
           throw new Error('Invalid skills format');
@@ -59,13 +56,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       setTitle(initialData.title || '');
       setDescription(initialData.description || '');
       setBudget(Number(initialData.budget) || 0);
-
-      const normalizedSkills =
-        Array.isArray(initialData.skills) && initialData.skills.length > 0
-          ? initialData.skills.map(s => (typeof s === 'string' ? s : s.id))
-          : [];
-
-      setSelectedSkillIds(normalizedSkills);
+      setSelectedSkillIds(initialData.skills || []);
     }
   }, [initialData]);
 
