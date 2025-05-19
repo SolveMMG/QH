@@ -12,101 +12,37 @@ const EditJob = () => {
   const navigate = useNavigate();
   const { jobs, updateJob, isLoading } = useJobs();
   const { user } = useAuth();
-
   const [job, setJob] = useState<Job | null>(null);
-  const [isFetching, setIsFetching] = useState<boolean>(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchJob = async () => {
-      try {
-        if (!id) {
-          setFetchError('Job ID is missing in URL');
-          return;
-        }
+    if (id && user) {
+      const foundJob = jobs.find(j => j.id === id);
 
-        if (!user) {
-          setFetchError('User not authenticated');
-          return;
-        }
-
-        const foundJob = jobs.find(j => j.id === id);
-
-        if (!foundJob) {
-          toast.error('Job not found');
-          setFetchError('Job not found');
-          return navigate('/employer/dashboard');
-        }
-
+      if (foundJob) {
+        // Check if user is the employer for this job
         if (foundJob.employerId !== user.id) {
           toast.error('You do not have permission to edit this job');
-          setFetchError('Permission denied');
-          return navigate('/employer/dashboard');
+          navigate('/employer/dashboard');
+        } else {
+          setJob(foundJob);
         }
-
-        setJob(foundJob);
-        setFetchError(null);
-      } catch (error) {
-        console.error('Error fetching job:', error);
-        setFetchError('An unexpected error occurred');
-      } finally {
-        setIsFetching(false);
+      } else {
+        toast.error('Job not found');
+        navigate('/employer/dashboard');
       }
-    };
-
-    fetchJob();
+    }
   }, [id, jobs, user, navigate]);
 
-  const handleSubmit = async (data: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName'>) => {
-    if (!id) {
-      toast.error('Job ID missing');
-      return;
-    }
-
-    try {
-      const rawSkills = data.skills;
-      console.log("Raw incoming data.skills:", rawSkills);
-      console.log("Type of skills:", typeof rawSkills);
-
-      const sanitizedSkills = Array.isArray(rawSkills)
-        ? rawSkills.map(skill => {
-            if (typeof skill === 'string') return skill;
-            if (skill && typeof skill === 'object' && 'id' in skill) return (skill as any).id;
-            console.warn('Invalid skill detected:', skill);
-            return null;
-          }).filter(Boolean)
-        : [];
-
-      const sanitizedPayload = {
-        ...data,
-        skills: sanitizedSkills,
-      };
-
-      console.log("Sanitized payload to updateJob:", sanitizedPayload);
-
-      const updated = await updateJob(id, sanitizedPayload);
-      toast.success('Job updated successfully');
-      navigate(`/jobs/${id}`);
-    } catch (err) {
-      console.error('Error updating job:', err);
-      toast.error('Failed to update job. Please try again.');
-    }
-  };
-
-  // User is not logged in
+  // Redirect if not logged in or not an employer
   if (!user) {
-    toast.error('Please log in to continue');
     return <Navigate to="/login" />;
   }
 
-  // User is not employer
   if (user.role !== 'employer') {
-    toast.error('Only employers can edit jobs');
     return <Navigate to="/" />;
   }
 
-  // Still fetching or error
-  if (isFetching) {
+  if (!job) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -118,26 +54,30 @@ const EditJob = () => {
     );
   }
 
-  if (fetchError || !job) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center text-red-600 font-semibold">
-          <p>{fetchError || 'Failed to load job'}</p>
-        </div>
-        <Footer />
-      </div>
+  const handleSubmit = async (data: Omit<Job, 'id' | 'createdAt' | 'employerId' | 'employerName'>) => {
+    if (!id) return;
+
+    // ✅ Sanitize skills to ensure they are string IDs
+    const sanitizedSkills = data.skills?.map(skill =>
+      typeof skill === 'string' ? skill : (skill as any).id
     );
-  }
 
-  // Normalize initialData.skills before sending to JobForm
-  const normalizedSkills = Array.isArray(job.skills)
-    ? job.skills.map(skill =>
-        typeof skill === 'string' ? skill : skill?.id
-      ).filter(Boolean)
-    : [];
+    const sanitizedPayload = {
+      ...data,
+      skills: sanitizedSkills,
+    };
 
-  console.log("Normalized initialData.skills:", normalizedSkills);
+    console.log("Payload being sent:", sanitizedPayload);
+
+    try {
+      const updatedJob = await updateJob(id, sanitizedPayload);
+      console.log('Updated job:', updatedJob);
+      toast.success('Job updated successfully');
+      navigate(`/jobs/${id}`);
+    } catch (error) {
+      // Error is already handled in the updateJob function
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -149,12 +89,7 @@ const EditJob = () => {
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <JobForm
-              initialData={{
-                title: job.title,
-                description: job.description,
-                budget: job.budget,
-                skills: normalizedSkills,
-              }}
+              initialData={job}
               onSubmit={handleSubmit}
               isLoading={isLoading}
             />

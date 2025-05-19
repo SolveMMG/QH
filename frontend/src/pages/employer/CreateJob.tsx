@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
+
+import React, { useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useJobs } from '@/hooks/useJobs';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,13 +18,7 @@ const CreateJob = () => {
     getAvailableSkills();
   }, [getAvailableSkills]);
 
-  const initialJobData = useMemo(() => ({
-    title: '',
-    description: '',
-    budget: 0,
-    skills: [], // Ensure it's always an array
-  }), []);
-
+  // Redirect if not logged in or not an employer
   if (!user) {
     return <Navigate to="/login" />;
   }
@@ -34,7 +29,7 @@ const CreateJob = () => {
 
   const handleSubmit = async (jobData) => {
     try {
-      console.log("Payload being sent:", jobData); 
+      console.log("Payload being sent:", jobData); // where jobData is the object you're sending
       const job = await createJob(jobData);
       toast.success('Job created successfully!');
       navigate(`/jobs/${job.id}`);
@@ -53,7 +48,6 @@ const CreateJob = () => {
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <JobForm
-              initialData={initialJobData}
               onSubmit={handleSubmit}
               isLoading={isLoading}
             />

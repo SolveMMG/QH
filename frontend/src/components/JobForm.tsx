@@ -17,7 +17,7 @@ interface JobFormProps {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: (string | Skill)[] | string | Skill; // allow single string or object too
+    skills?: string[];
   };
 }
 
@@ -27,80 +27,38 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
   const [budget, setBudget] = useState<number>(0);
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [skillsFromDB, setSkillsFromDB] = useState<Skill[]>([]);
+  const [skillsError, setSkillsError] = useState<string>('');
   const [didInit, setDidInit] = useState(false);
 
-  // Debug log to check initialData.skills shape
-  useEffect(() => {
-    console.log('initialData.skills:', initialData?.skills);
-    if (initialData?.skills && !Array.isArray(initialData.skills)) {
-      console.warn('Warning: initialData.skills is not an array!', initialData.skills);
-    }
-  }, [initialData]);
-
-  // Initialize form fields and normalize skills from initialData safely
   useEffect(() => {
     if (!didInit && initialData) {
       setTitle(initialData.title || '');
       setDescription(initialData.description || '');
       setBudget(Number(initialData.budget) || 0);
-
-      let safeSkills: string[] = [];
-
-      if (initialData.skills) {
-        if (Array.isArray(initialData.skills)) {
-          safeSkills = initialData.skills.map(s => (typeof s === 'string' ? s : s.id));
-        } else if (typeof initialData.skills === 'string') {
-          safeSkills = [initialData.skills];
-        } else if (typeof initialData.skills === 'object' && initialData.skills.id) {
-          safeSkills = [initialData.skills.id];
-        }
-      }
-
-      setSelectedSkillIds(safeSkills);
+      setSelectedSkillIds(Array.isArray(initialData.skills) ? initialData.skills : []);
       setDidInit(true);
     }
   }, [initialData, didInit]);
 
-  // Fetch skills from API, either filtered by selected ids or all
- useEffect(() => {
-  const fetchSkills = async () => {
-    try {
-      if (initialData?.skills) {
-        let ids: string[] = [];
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const url = initialData?.skills?.length
+          ? `/api/skills?ids=${initialData.skills.join(',')}`
+          : '/api/skills';
 
-        if (Array.isArray(initialData.skills)) {
-          ids = initialData.skills.map(s => (typeof s === 'string' ? s : s.id));
-        } else if (typeof initialData.skills === 'string') {
-          ids = [initialData.skills];
-        } else if (typeof initialData.skills === 'object' && 'id' in initialData.skills) {
-          ids = [initialData.skills.id];
-        }
-
-        console.log('Normalized initialData.skills:', ids);
-
-        if (ids.length > 0) {
-          const queryParam = ids.join(',');
-          console.log('Fetching skills with IDs:', queryParam);
-          const response = await axios.get(`/api/skills?ids=${queryParam}`);
-          console.log('Skills response:', response.data);
-          setSkillsFromDB(response.data);
-          return;
-        }
+        const response = await axios.get(url);
+        setSkillsFromDB(response.data);
+        setSkillsError('');
+      } catch (error: any) {
+        console.error('Error fetching skills:', error);
+        setSkillsFromDB([]);
+        setSkillsError('Failed to load skills. Please try again later.');
       }
+    };
 
-      // fallback to fetching all skills if no initial skills
-      console.log('Fetching all skills');
-      const response = await axios.get('/api/skills');
-      console.log('All skills response:', response.data);
-      setSkillsFromDB(response.data);
-    } catch (error: any) {
-      console.error('Failed to fetch skills:', error.response?.data || error.message || error);
-    }
-  };
-
-  fetchSkills();
-}, [initialData]);
-
+    fetchSkills();
+  }, [initialData]);
 
   const toggleSkill = (id: string) => {
     setSelectedSkillIds(prev =>
@@ -110,12 +68,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      title,
-      description,
-      budget,
-      skills: selectedSkillIds,
-    });
+    onSubmit({ title, description, budget, skills: selectedSkillIds });
   };
 
   return (
@@ -149,7 +102,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
           type="number"
           value={budget}
           onChange={e => setBudget(Number(e.target.value))}
-          min={0}
+          min="0"
           required
         />
       </div>
@@ -157,7 +110,9 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       <div>
         <Label>Required Skills</Label>
         <div className="flex flex-wrap gap-2 mt-2">
-          {Array.isArray(skillsFromDB) && skillsFromDB.length > 0 ? (
+          {skillsError ? (
+            <p className="text-sm text-red-500">{skillsError}</p>
+          ) : skillsFromDB.length > 0 ? (
             skillsFromDB.map(skill => (
               <button
                 key={skill.id}
@@ -173,7 +128,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
               </button>
             ))
           ) : (
-            <p className="text-sm text-red-500">Skills could not be loaded.</p>
+            <p className="text-sm text-gray-500">No skills available.</p>
           )}
         </div>
       </div>
