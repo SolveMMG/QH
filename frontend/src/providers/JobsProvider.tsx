@@ -73,10 +73,10 @@ export const JobsProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 const getAvailableSkills = async (): Promise<Skill[]> => {
   try {
     const response = await api.get('/skills');
-
     const skills = response.data;
 
-    // ✅ Validate that skills is an array of objects with 'id' and 'name'
+    console.log('API Response:', skills);
+
     if (
       !Array.isArray(skills) ||
       !skills.every(skill => typeof skill.id === 'string' && typeof skill.name === 'string')
@@ -84,15 +84,15 @@ const getAvailableSkills = async (): Promise<Skill[]> => {
       throw new Error('Invalid skills format');
     }
 
-    // ✅ If valid, update state or return
     setAvailableSkills(skills);
     return skills;
-  } catch (error: any) {
-    console.error('Error fetching skills:', error);
+  } catch (error) {
+    console.error('Failed to fetch skills:', error);
     toast.error('Failed to fetch skills');
     return [];
   }
 };
+
 
   const getJobById = async (id: string): Promise<Job | null> => {
     try {

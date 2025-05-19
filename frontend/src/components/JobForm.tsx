@@ -17,7 +17,7 @@ interface JobFormProps {
     title?: string;
     description?: string;
     budget?: number;
-    skills?: string[];
+    skills?: (string | { id: string; name: string })[];
   };
 }
 
@@ -33,9 +33,13 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
     const fetchSkills = async () => {
       try {
         const response = await axios.get('/api/skills');
+        const skills = response.data;
 
-        if (Array.isArray(response.data)) {
-          setSkillsFromDB(response.data);
+        if (
+          Array.isArray(skills) &&
+          skills.every(skill => typeof skill.id === 'string' && typeof skill.name === 'string')
+        ) {
+          setSkillsFromDB(skills);
           setSkillFetchError(null);
         } else {
           throw new Error('Invalid skills format');
@@ -43,7 +47,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       } catch (error) {
         console.error('Failed to fetch skills:', error);
         setSkillFetchError('Unable to load skills. You can still submit the job without selecting skills.');
-        setSkillsFromDB([]); // prevent undefined errors
+        setSkillsFromDB([]);
       }
     };
 
@@ -55,7 +59,13 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       setTitle(initialData.title || '');
       setDescription(initialData.description || '');
       setBudget(Number(initialData.budget) || 0);
-      setSelectedSkillIds(initialData.skills || []);
+
+      const normalizedSkills =
+        Array.isArray(initialData.skills) && initialData.skills.length > 0
+          ? initialData.skills.map(s => (typeof s === 'string' ? s : s.id))
+          : [];
+
+      setSelectedSkillIds(normalizedSkills);
     }
   }, [initialData]);
 
@@ -117,21 +127,20 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
           <p className="text-red-600 text-sm mb-2">{skillFetchError}</p>
         )}
         <div className="flex flex-wrap gap-2 mt-2">
-          {Array.isArray(skillsFromDB) &&
-            skillsFromDB.map(skill => (
-              <button
-                key={skill.id}
-                type="button"
-                className={`px-3 py-1 rounded-full border text-sm transition ${
-                  selectedSkillIds.includes(skill.id)
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-300'
-                }`}
-                onClick={() => toggleSkill(skill.id)}
-              >
-                {skill.name}
-              </button>
-            ))}
+          {skillsFromDB.map(skill => (
+            <button
+              key={skill.id}
+              type="button"
+              className={`px-3 py-1 rounded-full border text-sm transition ${
+                selectedSkillIds.includes(skill.id)
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300'
+              }`}
+              onClick={() => toggleSkill(skill.id)}
+            >
+              {skill.name}
+            </button>
+          ))}
         </div>
       </div>
 
