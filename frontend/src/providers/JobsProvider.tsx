@@ -88,6 +88,7 @@ const getAvailableSkills = async (): Promise<Skill[]> => {
     }
 
     setAvailableSkills(data);
+    console.log('Available skills:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch skills:', error);
@@ -95,7 +96,6 @@ const getAvailableSkills = async (): Promise<Skill[]> => {
     return [];
   }
 };
-
 
   const getJobById = async (id: string): Promise<Job | null> => {
     try {

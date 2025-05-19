@@ -45,6 +45,7 @@ const JobForm: React.FC<JobFormProps> = ({ onSubmit, isLoading = false, initialD
       ) {
         setSkillsFromDB(data);
         setSkillFetchError(null);
+        console.log('Fetched skills:', data);
       } else {
         throw new Error('Invalid skills format');
       }

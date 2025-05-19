@@ -26,17 +26,29 @@ const CreateJob = () => {
   if (user.role !== 'employer') {
     return <Navigate to="/" />;
   }
+  
 
-  const handleSubmit = async (jobData) => {
-    try {
-      console.log("Payload being sent:", jobData); // where jobData is the object you're sending
-      const job = await createJob(jobData);
-      toast.success('Job created successfully!');
-      navigate(`/jobs/${job.id}`);
-    } catch (error) {
-      toast.error('Failed to create job. Please try again.');
-    }
-  };
+ const handleSubmit = async (jobData) => {
+  try {
+    // Sanitize skills before sending to API
+    const sanitizedSkills = jobData.skills?.map(skill =>
+      typeof skill === 'string' ? skill : (skill as any).id
+    );
+
+    const sanitizedPayload = {
+      ...jobData,
+      skills: sanitizedSkills,
+    };
+
+    console.log("Payload being sent:", sanitizedPayload);
+
+    const job = await createJob(sanitizedPayload);
+    toast.success('Job created successfully!');
+    navigate(`/jobs/${job.id}`);
+  } catch (error) {
+    toast.error('Failed to create job. Please try again.');
+  }
+};
 
   return (
     <div className="min-h-screen flex flex-col">
